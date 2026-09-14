@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard Movistar México | Leads Meta Ads</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js"></script>
 <style>
   :root {
     --bg: #f4f6fa;
@@ -314,11 +314,8 @@ function renderKPIs(leads) {
   var ventaMulti = leads.filter(function(l){ return l.estaus === 'VENTA MULTI'; }).length;
   var ventasTotal = ventaMono + ventaMulti;
 
-  var valorVentas = 0, hasValor = false;
-  leads.filter(isVenta).forEach(function(l) {
-    var plan = toNum(l.plan_vendido), qty = toNum(l.qty_venta);
-    if (plan !== null && qty !== null) { valorVentas += plan * 0.5 * qty; hasValor = true; }
-  });
+  // Nota: este producto es de recarga (sin plan de precio fijo), por lo que no se
+  // contabiliza un "Valor Ventas" monetario — nunca se inventa esa cifra.
 
   var cvr = total > 0 ? ventasTotal / total : null;
 
