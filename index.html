@@ -286,7 +286,8 @@ function buildFilterOptions() {
   var asesores = Array.from(new Set(RAW_LEADS.map(function(l){ return l.asesor; }).filter(Boolean))).sort();
   document.getElementById('fPlataforma').innerHTML = '<option value="">Todas</option>' + platforms.map(function(p){return '<option value="'+p+'">'+p+'</option>';}).join('');
   fillSelect('fAsesor', asesores);
-  document.getElementById('fMes').innerHTML = '<option value="">Todos</option>' + MESES.map(function(m){return '<option value="'+m+'">'+m+'</option>';}).join('');
+  var mesesPresentes = Array.from(new Set(RAW_LEADS.map(function(l){ return toNum(l.mes); }).filter(function(m){ return m !== null; }))).sort(function(a,b){return a-b;});
+  document.getElementById('fMes').innerHTML = '<option value="">Todos</option>' + mesesPresentes.map(function(m){return '<option value="'+m+'">'+MESES[m-1]+'</option>';}).join('');
 }
 
 function getFilteredLeads() {
@@ -334,7 +335,10 @@ function renderKPIs(leads) {
   if (RAW_RESUMEN.length) {
     var rows = RAW_RESUMEN;
     if (mesFilter) {
-      rows = rows.filter(function(r){ return String(r['Mes']||'').indexOf(mesFilter) === 0; });
+      rows = rows.filter(function(r){
+        var d = new Date(r['Mes']);
+        return !isNaN(d.getTime()) && (d.getUTCMonth() + 1) === Number(mesFilter);
+      });
     }
     var inv = 0, invOk = rows.length > 0, leadsSum = 0, ventasSum = 0;
     rows.forEach(function(r) {
@@ -356,7 +360,11 @@ function renderKPIs(leads) {
 function renderChartMes() {
   var c = themeColors();
   var ctx = document.getElementById('chartMes');
-  var labels = RAW_RESUMEN.map(function(r){ return String(r['Mes']||'').split(' ')[0].slice(0,3); });
+  var MESES_ES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  var labels = RAW_RESUMEN.map(function(r){
+    var d = new Date(r['Mes']);
+    return isNaN(d.getTime()) ? String(r['Mes']||'') : MESES_ES[d.getUTCMonth()];
+  });
   var leadsData = RAW_RESUMEN.map(function(r){ return toNum(r['Leads']) || 0; });
   var ventasData = RAW_RESUMEN.map(function(r){ return toNum(r['Ventas Total']) || 0; });
 
