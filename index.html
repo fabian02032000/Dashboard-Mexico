@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Movistar México | Leads Meta Ads</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #f4f6fa;
+    --card-bg: #ffffff;
+    --text: #14213d;
+    --text-soft: #5b6472;
+    --border: #e3e7ee;
+    --accent: #0A5EB0;
+    --accent-soft: #eaf2fb;
+    --green: #1a9e5a;
+    --red: #d9455f;
+    --amber: #e0932c;
+    --shadow: 0 1px 3px rgba(20,33,61,0.06), 0 1px 2px rgba(20,33,61,0.04);
+    --radius: 14px;
+  }
+  [data-theme="dark"] {
+    --bg: #0f1420;
+    --card-bg: #171d2c;
+    --text: #eef1f7;
+    --text-soft: #9aa4b6;
+    --border: #262f42;
+    --accent: #4c9be8;
+    --accent-soft: #1b2b40;
+    --green: #35c281;
+    --red: #f0667e;
+    --amber: #f0ab4c;
+    --shadow: 0 1px 3px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.25);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding: 20px 16px 60px;
+    transition: background .2s, color .2s;
+  }
+  .wrap { max-width: 1240px; margin: 0 auto; }
+
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px; margin-bottom: 20px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-badge {
+    width: 42px; height: 42px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), #0d3a75);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: 16px; flex-shrink: 0;
+  }
+  .brand h1 { font-size: 17px; margin: 0; line-height: 1.25; }
+  .brand span { display:block; font-size: 12.5px; color: var(--text-soft); font-weight: 500; }
+
+  .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  button, select {
+    font-family: inherit; font-size: 13.5px; border-radius: 9px;
+    border: 1px solid var(--border); background: var(--card-bg); color: var(--text);
+    padding: 8px 12px; cursor: pointer;
+  }
+  button:hover { border-color: var(--accent); }
+  #refreshBtn {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+    font-weight: 600; display: flex; align-items: center; gap: 6px;
+  }
+  #refreshBtn:hover { opacity: .92; }
+  #themeBtn { width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; }
+
+  .filters {
+    display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px;
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px 14px; box-shadow: var(--shadow);
+  }
+  .filters label { font-size: 12px; color: var(--text-soft); display: block; margin-bottom: 4px; font-weight: 600; }
+  .filters .fgroup { min-width: 150px; flex: 1; }
+  .filters select { width: 100%; }
+
+  .status-line { font-size: 12.5px; color: var(--text-soft); margin: -8px 0 18px 2px; }
+  .status-line.err { color: var(--red); }
+
+  .kpi-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px; margin-bottom: 22px;
+  }
+  .kpi {
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px; box-shadow: var(--shadow);
+  }
+  .kpi .label { font-size: 12px; color: var(--text-soft); font-weight: 600; text-transform: uppercase; letter-spacing: .02em; }
+  .kpi .value { font-size: 26px; font-weight: 700; margin-top: 6px; }
+  .kpi .sub { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
+  .kpi.accent .value { color: var(--accent); }
+  .kpi.good .value { color: var(--green); }
+
+  .grid-2 { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .grid-2b { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  @media (max-width: 860px) { .grid-2, .grid-2b { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px; box-shadow: var(--shadow);
+  }
+  .card h3 { margin: 0 0 14px; font-size: 14.5px; font-weight: 700; }
+  .card h3 span { font-weight: 500; color: var(--text-soft); font-size: 12px; }
+  .chart-box { position: relative; height: 260px; }
+  .chart-box.tall { height: 320px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); }
+  th { color: var(--text-soft); font-weight: 600; font-size: 11.5px; text-transform: uppercase; }
+  tr:last-child td { border-bottom: none; }
+  .pill {
+    display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600;
+    background: var(--accent-soft); color: var(--accent);
+  }
+  .empty-note { color: var(--text-soft); font-size: 13px; text-align: center; padding: 30px 10px; }
+  .loading-note { color: var(--text-soft); font-size: 13px; text-align: center; padding: 60px 10px; }
+
+  footer { text-align: center; font-size: 11.5px; color: var(--text-soft); margin-top: 30px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <div class="brand-badge">M</div>
+      <div>
+        <h1>Dashboard de Leads — Movistar México</h1>
+        <span>Portabilidad mediante recargas · Meta Ads</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button id="themeBtn" title="Cambiar tema">🌙</button>
+      <button id="refreshBtn">↻ Actualizar</button>
+    </div>
+  </header>
+
+  <div class="filters">
+    <div class="fgroup">
+      <label>Plataforma</label>
+      <select id="fPlataforma"><option value="">Todas</option></select>
+    </div>
+    <div class="fgroup">
+      <label>Mes</label>
+      <select id="fMes"><option value="">Todos</option></select>
+    </div>
+    <div class="fgroup">
+      <label>Asesor</label>
+      <select id="fAsesor"><option value="">Todos</option></select>
+    </div>
+  </div>
+
+  <div id="statusLine" class="status-line">Cargando datos…</div>
+
+  <div class="kpi-grid" id="kpiGrid">
+    <div class="kpi"><div class="label">Leads</div><div class="value" id="kpiLeads">–</div></div>
+    <div class="kpi"><div class="label">Gestionados</div><div class="value" id="kpiGestionados">–</div><div class="sub" id="kpiGestionadosPct">&nbsp;</div></div>
+    <div class="kpi"><div class="label">Contacto</div><div class="value" id="kpiContacto">–</div></div>
+    <div class="kpi good"><div class="label">Ventas</div><div class="value" id="kpiVentas">–</div><div class="sub" id="kpiVentasSplit">&nbsp;</div></div>
+    <div class="kpi accent"><div class="label">CVR</div><div class="value" id="kpiCVR">–</div></div>
+    <div class="kpi"><div class="label">CPL</div><div class="value" id="kpiCPL">–</div></div>
+    <div class="kpi"><div class="label">CPA</div><div class="value" id="kpiCPA">–</div></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>Leads vs. Ventas por mes <span>(año en curso)</span></h3>
+      <div class="chart-box"><canvas id="chartMes"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Tipificaciones <span>(Status Gestión)</span></h3>
+      <div class="chart-box"><canvas id="chartTipif"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid-2b">
+    <div class="card">
+      <h3>Ranking de asesores <span>(ventas y efectividad)</span></h3>
+      <div class="chart-box tall"><canvas id="chartAsesores"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Planes más vendidos</h3>
+      <div id="planTableWrap"><div class="loading-note">Cargando…</div></div>
+    </div>
+  </div>
+
+  <footer>Datos actualizados automáticamente desde Google Sheets · Sin información personal identificable</footer>
+</div>
+
+<script>
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyFsxfDP55dtV31J9-BgPLerERQ_W2_FINM9PcLCMQTi07vloN6WVmp7NwpUVUroTRk/exec';
+const TOKEN = '1b1be64c9cd54d919739d8f6298cf7b2';
+
+let RAW_LEADS = [];
+let RAW_RESUMEN = [];
+let charts = {};
+
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+function fmtMoney(n) {
+  if (n === null || n === undefined || isNaN(n)) return '-';
+  return '$' + n.toLocaleString('es-MX', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+}
+function fmtPct(n) {
+  if (n === null || n === undefined || isNaN(n)) return '-';
+  return (n * 100).toFixed(1) + '%';
+}
+function toNum(v) {
+  if (v === '' || v === null || v === undefined) return null;
+  var n = Number(v);
+  return isNaN(n) ? null : n;
+}
+
+// ---------- theme ----------
+function applyTheme(mode) {
+  document.documentElement.setAttribute('data-theme', mode);
+  document.getElementById('themeBtn').textContent = mode === 'dark' ? '☀️' : '🌙';
+  try { localStorage.setItem('dashboard-theme', mode); } catch(e) {}
+  renderCharts(); // re-render for updated grid colors
+}
+(function initTheme() {
+  var saved = null;
+  try { saved = localStorage.getItem('dashboard-theme'); } catch(e) {}
+  var mode = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', mode);
+  document.getElementById('themeBtn').textContent = mode === 'dark' ? '☀️' : '🌙';
+})();
+document.getElementById('themeBtn').addEventListener('click', function() {
+  var cur = document.documentElement.getAttribute('data-theme');
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+});
+
+function themeColors() {
+  var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  return {
+    text: dark ? '#9aa4b6' : '#5b6472',
+    grid: dark ? '#262f42' : '#e3e7ee',
+    accent: dark ? '#4c9be8' : '#0A5EB0',
+    green: dark ? '#35c281' : '#1a9e5a',
+    amber: dark ? '#f0ab4c' : '#e0932c',
+    palette: dark
+      ? ['#4c9be8','#35c281','#f0ab4c','#f0667e','#8c7ae6','#4ad8d8','#e8c34c','#d68cf0']
+      : ['#0A5EB0','#1a9e5a','#e0932c','#d9455f','#6c5ce7','#17a2a2','#c9a227','#a259d9']
+  };
+}
+
+// ---------- fetch ----------
+async function loadData() {
+  var statusEl = document.getElementById('statusLine');
+  statusEl.textContent = 'Cargando datos…';
+  statusEl.classList.remove('err');
+  try {
+    var res = await fetch(WEB_APP_URL + '?token=' + encodeURIComponent(TOKEN), { cache: 'no-store' });
+    var json = await res.json();
+    if (!json.ok) throw new Error(json.error || 'Respuesta invalida');
+    RAW_LEADS = json.leads || [];
+    RAW_RESUMEN = json.resumen || [];
+    statusEl.textContent = 'Actualizado: ' + new Date(json.generated_at).toLocaleString('es-MX') + ' · ' + RAW_LEADS.length + ' leads';
+    buildFilterOptions();
+    renderAll();
+  } catch (e) {
+    statusEl.textContent = 'No se pudo cargar la información (' + e.message + ')';
+    statusEl.classList.add('err');
+  }
+}
+
+function buildFilterOptions() {
+  function fillSelect(id, values) {
+    var sel = document.getElementById(id);
+    var current = sel.value;
+    var opts = ['<option value="">Todos</option>'];
+    values.forEach(function(v) {
+      opts.push('<option value="' + String(v).replace(/"/g,'&quot;') + '">' + v + '</option>');
+    });
+    sel.innerHTML = opts.join('');
+    if (values.indexOf(current) !== -1) sel.value = current;
+  }
+  var platforms = Array.from(new Set(RAW_LEADS.map(function(l){ return l.platform; }).filter(Boolean))).sort();
+  var asesores = Array.from(new Set(RAW_LEADS.map(function(l){ return l.asesor; }).filter(Boolean))).sort();
+  document.getElementById('fPlataforma').innerHTML = '<option value="">Todas</option>' + platforms.map(function(p){return '<option value="'+p+'">'+p+'</option>';}).join('');
+  fillSelect('fAsesor', asesores);
+  document.getElementById('fMes').innerHTML = '<option value="">Todos</option>' + MESES.map(function(m){return '<option value="'+m+'">'+m+'</option>';}).join('');
+}
+
+function getFilteredLeads() {
+  var plat = document.getElementById('fPlataforma').value;
+  var mes = document.getElementById('fMes').value;
+  var asesor = document.getElementById('fAsesor').value;
+  return RAW_LEADS.filter(function(l) {
+    if (plat && l.platform !== plat) return false;
+    if (mes && String(l.mes || '').trim() !== mes) return false;
+    if (asesor && l.asesor !== asesor) return false;
+    return true;
+  });
+}
+
+function isVenta(l) {
+  return l.estaus === 'VENTA MONO' || l.estaus === 'VENTA MULTI';
+}
+
+// ---------- KPIs ----------
+function renderKPIs(leads) {
+  var total = leads.length;
+  var gestionados = leads.filter(function(l){ return l.status_gestion !== '' && l.status_gestion !== null && l.status_gestion !== undefined; }).length;
+  var contacto = leads.filter(function(l){ return l.status_gestion === 'CONTACTO'; }).length;
+  var ventaMono = leads.filter(function(l){ return l.estaus === 'VENTA MONO'; }).length;
+  var ventaMulti = leads.filter(function(l){ return l.estaus === 'VENTA MULTI'; }).length;
+  var ventasTotal = ventaMono + ventaMulti;
+
+  var valorVentas = 0, hasValor = false;
+  leads.filter(isVenta).forEach(function(l) {
+    var plan = toNum(l.plan_vendido), qty = toNum(l.qty_venta);
+    if (plan !== null && qty !== null) { valorVentas += plan * 0.5 * qty; hasValor = true; }
+  });
+
+  var cvr = total > 0 ? ventasTotal / total : null;
+
+  document.getElementById('kpiLeads').textContent = total;
+  document.getElementById('kpiGestionados').textContent = gestionados;
+  document.getElementById('kpiGestionadosPct').textContent = total > 0 ? fmtPct(gestionados/total) + ' del total' : '';
+  document.getElementById('kpiContacto').textContent = contacto;
+  document.getElementById('kpiVentas').textContent = ventasTotal;
+  document.getElementById('kpiVentasSplit').textContent = ventaMono + ' mono · ' + ventaMulti + ' multi';
+  document.getElementById('kpiCVR').textContent = fmtPct(cvr);
+
+  // CPL/CPA: only computable when a single month is selected and Inversion is filled in RESUMEN META,
+  // or when "Todos" is selected and every month with leads has Inversion filled. Never invented.
+  var mesFilter = document.getElementById('fMes').value;
+  var cpl = null, cpa = null;
+  if (RAW_RESUMEN.length) {
+    var rows = RAW_RESUMEN;
+    if (mesFilter) {
+      rows = rows.filter(function(r){ return String(r['Mes']||'').indexOf(mesFilter) === 0; });
+    }
+    var inv = 0, invOk = rows.length > 0, leadsSum = 0, ventasSum = 0;
+    rows.forEach(function(r) {
+      var iv = toNum(r['Inversion']);
+      if (iv === null) { invOk = false; } else { inv += iv; }
+      leadsSum += toNum(r['Leads']) || 0;
+      ventasSum += toNum(r['Ventas Total']) || 0;
+    });
+    if (invOk && inv > 0) {
+      if (leadsSum > 0) cpl = inv / leadsSum;
+      if (ventasSum > 0) cpa = inv / ventasSum;
+    }
+  }
+  document.getElementById('kpiCPL').textContent = cpl !== null ? fmtMoney(cpl) : '-';
+  document.getElementById('kpiCPA').textContent = cpa !== null ? fmtMoney(cpa) : '-';
+}
+
+// ---------- chart: mes ----------
+function renderChartMes() {
+  var c = themeColors();
+  var ctx = document.getElementById('chartMes');
+  var labels = RAW_RESUMEN.map(function(r){ return String(r['Mes']||'').split(' ')[0].slice(0,3); });
+  var leadsData = RAW_RESUMEN.map(function(r){ return toNum(r['Leads']) || 0; });
+  var ventasData = RAW_RESUMEN.map(function(r){ return toNum(r['Ventas Total']) || 0; });
+
+  if (charts.mes) charts.mes.destroy();
+  charts.mes = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: 'Leads', data: leadsData, backgroundColor: c.accent, borderRadius: 5, maxBarThickness: 26 },
+        { label: 'Ventas', data: ventasData, backgroundColor: c.green, borderRadius: 5, maxBarThickness: 26, yAxisID: 'y1' }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { labels: { color: c.text, usePointStyle: true, boxWidth: 8 } } },
+      scales: {
+        x: { ticks: { color: c.text }, grid: { display: false } },
+        y: { ticks: { color: c.text }, grid: { color: c.grid }, beginAtZero: true },
+        y1: { display: false, beginAtZero: true }
+      }
+    }
+  });
+}
+
+// ---------- chart: tipificaciones ----------
+function renderChartTipif(leads) {
+  var c = themeColors();
+  var counts = {};
+  leads.forEach(function(l) {
+    var k = (l.status_gestion || '').toString().trim();
+    if (!k) k = 'Sin gestionar';
+    counts[k] = (counts[k] || 0) + 1;
+  });
+  var entries = Object.keys(counts).map(function(k){ return [k, counts[k]]; }).sort(function(a,b){ return b[1]-a[1]; });
+  var top = entries.slice(0, 7);
+  var restSum = entries.slice(7).reduce(function(s,e){ return s + e[1]; }, 0);
+  if (restSum > 0) top.push(['Otras', restSum]);
+
+  var ctx = document.getElementById('chartTipif');
+  if (charts.tipif) charts.tipif.destroy();
+
+  if (!top.length) {
+    document.getElementById('chartTipif').parentElement.innerHTML = '<div class="empty-note">Sin datos para los filtros seleccionados</div>';
+    return;
+  }
+  charts.tipif = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: top.map(function(e){ return e[0]; }),
+      datasets: [{ data: top.map(function(e){ return e[1]; }), backgroundColor: c.palette, borderWidth: 0 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'right', labels: { color: c.text, boxWidth: 10, font: { size: 11 } } } }
+    }
+  });
+}
+
+// ---------- chart: asesores ----------
+function renderChartAsesores(leads) {
+  var c = themeColors();
+  var map = {};
+  leads.forEach(function(l) {
+    var a = (l.asesor || '').toString().trim();
+    if (!a) return;
+    if (!map[a]) map[a] = { leads: 0, ventas: 0 };
+    map[a].leads++;
+    if (isVenta(l)) map[a].ventas++;
+  });
+  var rows = Object.keys(map).map(function(a){
+    return { asesor: a, leads: map[a].leads, ventas: map[a].ventas, ef: map[a].leads ? map[a].ventas/map[a].leads : 0 };
+  }).sort(function(x,y){ return y.ventas - x.ventas || y.ef - x.ef; }).slice(0, 12);
+
+  var ctx = document.getElementById('chartAsesores');
+  if (charts.asesores) charts.asesores.destroy();
+
+  if (!rows.length) {
+    ctx.parentElement.innerHTML = '<div class="empty-note">Sin datos de asesores para los filtros seleccionados</div>';
+    return;
+  }
+  charts.asesores = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: rows.map(function(r){ return r.asesor; }),
+      datasets: [
+        { label: 'Ventas', data: rows.map(function(r){ return r.ventas; }), backgroundColor: c.green, borderRadius: 5 },
+        { label: 'Leads', data: rows.map(function(r){ return r.leads; }), backgroundColor: c.accent, borderRadius: 5 }
+      ]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: c.text, usePointStyle: true, boxWidth: 8 } } },
+      scales: {
+        x: { ticks: { color: c.text }, grid: { color: c.grid }, beginAtZero: true },
+        y: { ticks: { color: c.text }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+// ---------- planes table ----------
+function renderPlanes(leads) {
+  var wrap = document.getElementById('planTableWrap');
+  var map = {};
+  leads.filter(isVenta).forEach(function(l) {
+    var p = (l.plan_vendido || '').toString().trim();
+    if (!p) p = 'Sin especificar';
+    map[p] = (map[p] || 0) + 1;
+  });
+  var rows = Object.keys(map).map(function(p){ return [p, map[p]]; }).sort(function(a,b){ return b[1]-a[1]; });
+  if (!rows.length) {
+    wrap.innerHTML = '<div class="empty-note">Sin ventas registradas para los filtros seleccionados</div>';
+    return;
+  }
+  var total = rows.reduce(function(s,r){ return s+r[1]; }, 0);
+  var html = '<table><thead><tr><th>Plan</th><th>Ventas</th><th>% del total</th></tr></thead><tbody>';
+  rows.slice(0, 10).forEach(function(r) {
+    html += '<tr><td>' + r[0] + '</td><td><span class="pill">' + r[1] + '</span></td><td>' + fmtPct(r[1]/total) + '</td></tr>';
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+
+function renderCharts() {
+  var leads = getFilteredLeads();
+  renderChartMes();
+  renderChartTipif(leads);
+  renderChartAsesores(leads);
+}
+
+function renderAll() {
+  var leads = getFilteredLeads();
+  renderKPIs(leads);
+  renderCharts();
+  renderPlanes(leads);
+}
+
+['fPlataforma','fMes','fAsesor'].forEach(function(id) {
+  document.getElementById(id).addEventListener('change', renderAll);
+});
+document.getElementById('refreshBtn').addEventListener('click', loadData);
+
+loadData();
+</script>
+</body>
+</html>
