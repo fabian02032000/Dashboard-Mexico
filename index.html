@@ -343,7 +343,7 @@ function renderKPIs(leads) {
     var inv = 0, invOk = rows.length > 0, leadsSum = 0, ventasSum = 0;
     rows.forEach(function(r) {
       var iv = toNum(r['Inversion']);
-      if (iv === null) { invOk = false; } else { inv += iv; }
+      if (iv === null) { if ((toNum(r['Leads']) || 0) > 0) invOk = false; } else { inv += iv; }
       leadsSum += toNum(r['Leads']) || 0;
       ventasSum += toNum(r['Ventas Total']) || 0;
     });
