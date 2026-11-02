@@ -195,8 +195,8 @@
 </div>
 
 <script>
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyFsxfDP55dtV31J9-BgPLerERQ_W2_FINM9PcLCMQTi07vloN6WVmp7NwpUVUroTRk/exec';
-const TOKEN = '1b1be64c9cd54d919739d8f6298cf7b2';
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyrEcHBcdbguKTxrtEtL6YsWNV283jCVU6uJyQvl3AKJeO3qQz3qnB19LpC8LSNk1QS/exec';
+const TOKEN = '620beddab3ce4768804724be1474684b';
 
 let RAW_LEADS = [];
 let RAW_RESUMEN = [];
@@ -206,7 +206,7 @@ const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto'
 
 function fmtMoney(n) {
   if (n === null || n === undefined || isNaN(n)) return '-';
-  return '$' + n.toLocaleString('es-MX', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+  return 'S/ ' + n.toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 }
 function fmtPct(n) {
   if (n === null || n === undefined || isNaN(n)) return '-';
